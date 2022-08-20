@@ -41,6 +41,16 @@
         "set": "cpp",
         "xtree": "cpp",
         "algorithm": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ctime": "cpp",
+        "iterator": "cpp",
+        "stack": "cpp",
+        "deque": "cpp"
     }
 }
