@@ -1,7 +1,7 @@
 #include <string>
-#include <fstream>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <tuple>
 #include <set>
 #include <stack>
@@ -17,9 +17,9 @@ void insertColumn(grid &board, const int x, const int y);
 void printBoard(const grid &board);
 void updateBoard(grid &board, const std::set<int> numRange);
 grid createBoard();
-bool boardDone(grid board);
-bool boardIsCorrupt(grid board);
-const std::tuple<int, std::set<int>> *findZero(const grid &board);
+bool boardDone(const grid &board);
+bool boardIsCorrupt(const grid &board);
+std::tuple<int, int> findZero(const grid &board);
 
 int main()
 {
@@ -32,24 +32,18 @@ int main()
     const std::set<int> numRange = numRangeInit;
     auto board = createBoard();
     auto lastBoard = board;
-    std::stack<grid> stanck{};
-    stanck.push(board);
-    int counter0{0};
-    int counter1{0};
-    int counter2{0};
-    int counter3{0};
-    int counter4{0};
+    std::stack<grid> depthSearchStack{};
+    depthSearchStack.push(board);
     while (true)
     {
-        counter0++;
-        if (stanck.size() == 0)
+        if (depthSearchStack.size() == 0)
         {
             std::cout << "shouldn't happen" << std::endl;
             break;
         }
         else
         {
-            board = stanck.top();
+            board = depthSearchStack.top();
             lastBoard = board;
             updateBoard(board, numRange);
             if (boardDone(board))
@@ -59,66 +53,45 @@ int main()
             }
             else if (boardIsCorrupt(board))
             {
-                stanck.pop();
+                depthSearchStack.pop();
             }
             else if (lastBoard == board)
             {
+                depthSearchStack.pop();
+                auto [y, x] = findZero(board);
 
-                bool exit{false};
-                for (int y = 0; y < board.size(); y++)
+                std::set<int> possNums;
+                std::set_difference(numRange.begin(), numRange.end(), std::get<1>(board[y][x]).begin(), std::get<1>(board[y][x]).end(),
+                                    std::inserter(possNums, possNums.end()));
+                for (auto possNum : possNums)
                 {
-                    for (int x = 0; x < board.size(); x++)
-                    {
-                        const auto b = board[y][x];
-                        if (std::get<0>(b) == 0)
-                        {
-                            stanck.pop();
-
-                            std::set<int> result;
-                            std::set_difference(numRange.begin(), numRange.end(), std::get<1>(board[y][x]).begin(), std::get<1>(board[y][x]).end(),
-                                                std::inserter(result, result.end()));
-                            for (auto p : result)
-                            {
-                                auto boardCopy = board;
-                                std::get<0>(boardCopy[y][x]) = p;
-                                stanck.push(boardCopy);
-                            }
-                            exit = true;
-                        }
-                        if (exit)
-                        {
-                            break;
-                        }
-                    }
-                    if (exit)
-                    {
-                        break;
-                    }
+                    std::get<0>(board[y][x]) = possNum;
+                    depthSearchStack.push(board);
                 }
             }
             else
             {
-                stanck.top() = board;
+                depthSearchStack.top() = board;
             }
         }
     }
 
     return 0;
 }
-/* const std::tuple<int, std::set<int>> *findZero(const grid &board)
+std::tuple<int, int> findZero(const grid &board)
 {
-    for (const auto &a : board)
+    for (int y = 0; y < board.size(); y++)
     {
-        for (const auto &b : a)
+        for (int x = 0; x < board.size(); x++)
         {
-            if (std::get<0>(b) == 0)
+            if (std::get<0>(board[y][x]) == 0)
             {
-                return &b;
+                return std::make_tuple(y, x);
             }
         }
     }
-} */
-bool boardIsCorrupt(grid board)
+}
+bool boardIsCorrupt(const grid &board)
 {
     for (auto a : board)
     {
@@ -132,7 +105,7 @@ bool boardIsCorrupt(grid board)
     }
     return false;
 }
-bool boardDone(grid board)
+bool boardDone(const grid &board)
 {
     for (auto a : board)
     {
@@ -188,8 +161,8 @@ void printBoard(const grid &board)
         if (j % 3 == 0 && j != 9)
         {
 
-            std::cout << "\n_______________________\n";
-            vystup << "\n_______________________\n";
+            std::cout << "\n______________________\n";
+            vystup << "\n______________________\n";
         }
         std::cout << "\n";
         vystup << "\n";
@@ -214,10 +187,10 @@ void updateBoard(grid &board, const std::set<int> numRange)
                 }
                 if (std::get<1>(board[y][x]).size() == 8)
                 {
-                    std::set<int> result;
+                    std::set<int> possNums;
                     std::set_difference(numRange.begin(), numRange.end(), std::get<1>(board[y][x]).begin(), std::get<1>(board[y][x]).end(),
-                                        std::inserter(result, result.end()));
-                    std::get<0>(board[y][x]) = *result.begin();
+                                        std::inserter(possNums, possNums.end()));
+                    std::get<0>(board[y][x]) = *possNums.begin();
                 }
             }
         }
@@ -250,142 +223,3 @@ void insertColumn(grid &board, const int x, const int y)
         (*square).insert(std::get<0>(columnSquare[x]));
     }
 }
-std::pair<int, int> findEntryWithLargestValue(
-    std::map<int, int> sampleMap)
-{
-    // Reference variable to help find
-    // the entry with the highest value
-    std::pair<int, int> entryWithMaxValue = std::make_pair(0, 0);
-
-    // Iterate in the map to find the required entry
-    std::map<int, int>::iterator currentEntry;
-    for (currentEntry = sampleMap.begin();
-         currentEntry != sampleMap.end();
-         ++currentEntry)
-    {
-
-        // If this entry's value is more
-        // than the max value
-        // Set this entry as the max
-        if (currentEntry->second > entryWithMaxValue.second)
-        {
-
-            entryWithMaxValue = std::make_pair(
-                currentEntry->first,
-                currentEntry->second);
-        }
-    }
-
-    return entryWithMaxValue;
-}
-
-/*
-         for (int y = 0; y < board.size(); y++)
-         {
-             for (int x = 0; x < board[y].size(); x++)
-             {
-                 int num{std::get<0>(board[y][x])};
-                 if (num == 0)
-                 {
-
-                     insertLine(board, x, y);
-                     insertColumn(board, x, y);
-                     insertSquare(board, x, y);
-
-                     std::vector<int> allNums;
-                     int zeroCounter{0};
-                     allNums.reserve(100);
-                     for (int count = 0; count < board[y].size(); count++)
-                     {
-                         auto neco = board[y][count];
-                         if (count != x && std::get<0>(neco) == 0)
-                         {
-                             ++zeroCounter;
-                             allNums.insert(allNums.end(), std::get<1>(neco).begin(), std::get<1>(neco).end());
-                         }
-                     }
-                     std::map<int, int> counters;
-                     for (auto i : allNums)
-                     {
-                         if (std::get<1>(board[y][x]).find(i) == std::get<1>(board[y][x]).end())
-                         {
-                             ++counters[i];
-                         }
-                     }
-                     auto var{*std::max_element(counters.begin(), counters.end())};
-                     if (std::get<1>(var) == zeroCounter)
-                     {
-                         std::get<0>(board[y][x]) = std::get<0>(var);
-                     }
-                     allNums.clear();
-                     zeroCounter = 0;
-                     counters.clear();
-                     for (int count = 0; count < board.size(); count++)
-                     {
-                         auto neco = board[count];
-                         if (count != y && std::get<0>(neco[x]) == 0)
-                         {
-                             ++zeroCounter;
-                             allNums.insert(allNums.end(), std::get<1>(neco[x]).begin(), std::get<1>(neco[x]).end());
-                         }
-                     }
-                     for (auto i : allNums)
-                     {
-                         if (std::get<1>(board[y][x]).find(i) == std::get<1>(board[y][x]).end())
-                         {
-                             ++counters[i];
-                         }
-                     }
-                     auto var2{*std::max_element(counters.begin(), counters.end())};
-                     if (std::get<1>(var2) == zeroCounter && std::get<1>(board[y][x]).find(std::get<0>(var2)) == std::get<1>(board[y][x]).end())
-                     {
-                         std::get<0>(board[y][x]) = std::get<0>(var2);
-                     }
-                     allNums.clear();
-                     zeroCounter = 0;
-                     counters.clear();
-
-                     std::vector<std::tuple<int, std::set<int>>> considering{};
-                     considering.reserve(9);
-                     considering.push_back(board[(y / 3) * 3][(x / 3) * 3]);
-                     considering.push_back(board[(y / 3) * 3 + 1][(x / 3) * 3]);
-                     considering.push_back(board[(y / 3) * 3 + 2][(x / 3) * 3]);
-                     considering.push_back(board[(y / 3) * 3][(x / 3) * 3 + 1]);
-                     considering.push_back(board[(y / 3) * 3 + 1][(x / 3) * 3 + 1]);
-                     considering.push_back(board[(y / 3) * 3 + 2][(x / 3) * 3 + 1]);
-                     considering.push_back(board[(y / 3) * 3][(x / 3) * 3 + 2]);
-                     considering.push_back(board[(y / 3) * 3 + 1][(x / 3) * 3 + 2]);
-                     considering.push_back(board[(y / 3) * 3 + 2][(x / 3) * 3 + 2]);
-                     {
-                         auto idk = std::remove(considering.begin(), considering.end(), board[y][x]);
-                         considering.erase(idk, considering.end());
-                     }
-                     while (considering.size() < 8)
-                     {
-                         considering.push_back(board[y][x]);
-                     }
-                     for (int count = 0; count < considering.size(); count++)
-                     {
-                         auto neco = considering[count];
-                         if (std::get<0>(neco) == 0)
-                         {
-                             ++zeroCounter;
-                             allNums.insert(allNums.end(), std::get<1>(neco).begin(), std::get<1>(neco).end());
-                         }
-                     }
-
-                     for (auto i : allNums)
-                     {
-                         if (std::get<1>(board[y][x]).find(i) == std::get<1>(board[y][x]).end())
-                         {
-                             ++counters[i];
-                         }
-                     }
-                     auto var3{findEntryWithLargestValue(counters)};
-                     if (std::get<1>(var3) == zeroCounter && std::get<1>(board[y][x]).find(std::get<0>(var3)) == std::get<1>(board[y][x]).end())
-                     {
-                         std::get<0>(board[y][x]) = std::get<0>(var3);
-                     }
-                 }
-             }
-         } */
