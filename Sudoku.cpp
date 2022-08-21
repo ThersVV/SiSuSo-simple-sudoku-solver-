@@ -107,9 +107,9 @@ bool boardIsCorrupt(const grid &board)
 }
 bool boardDone(const grid &board)
 {
-    for (auto lne : board)
+    for (auto line : board)
     {
-        for (auto column : lne)
+        for (auto column : line)
         {
             if (std::get<0>(column) == 0)
             {
@@ -125,13 +125,13 @@ grid createBoard()
     grid board;
     for (int i = 0; i < 9; i++)
     {
-        std::string levell{};
-        std::set<int> emptyy{};
+        std::string inputLevel{};
+        std::set<int> empty{};
         std::vector<std::tuple<int, std::set<int>>> level{};
-        vstup >> levell;
-        for (auto &c : levell)
+        vstup >> inputLevel;
+        for (auto &c : inputLevel)
         {
-            level.push_back(std::make_tuple(c - '0', emptyy));
+            level.push_back(std::make_tuple(c - '0', empty));
         }
         board.push_back(level);
     }
