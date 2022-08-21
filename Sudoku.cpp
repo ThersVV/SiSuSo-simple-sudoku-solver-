@@ -107,11 +107,11 @@ bool boardIsCorrupt(const grid &board)
 }
 bool boardDone(const grid &board)
 {
-    for (auto a : board)
+    for (auto line : board)
     {
-        for (auto b : a)
+        for (auto column : line)
         {
-            if (std::get<0>(b) == 0)
+            if (std::get<0>(column) == 0)
             {
                 return false;
             }
